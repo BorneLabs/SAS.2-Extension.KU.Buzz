@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign Up - KU Social Platform</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <link rel="stylesheet" href="style.css" />
   <style>
     /* Sign Up Page Specific Styles */
@@ -53,12 +52,15 @@
       <input type="text" id="firstName" placeholder="First Name">
       <input type="text" id="lastName" placeholder="Last Name">
       <input type="text" id="username" placeholder="Username">
+      <!-- Added Email Input -->
+      <input type="email" id="email" placeholder="Email">
       <input type="password" id="password" placeholder="Password">
       <input type="password" id="confirmPassword" placeholder="Confirm Password">
       <button id="signUpBtn">Register</button>
       <p id="errorMessage" class="error-message">Error message here</p>
     </div>
   </div>
-  <script src="signup.js"></script>
+  <!-- Load as a module if you're using module syntax in signup.js -->
+  <script type="module" src="signup.js"></script>
 </body>
 </html>
