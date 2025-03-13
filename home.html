@@ -43,7 +43,10 @@
     <div class="new-post-content">
       <button class="popup-close-btn" id="popupCloseBtn">&times;</button>
       <h2>Create a Post</h2>
-      <textarea id="popupPostText" placeholder="What's on your mind?" rows="4"></textarea>
+      <!-- Set a character limit of 750 -->
+      <textarea id="popupPostText" placeholder="What's on your mind?" rows="4" maxlength="750"></textarea>
+      <!-- Character counter -->
+      <div id="charCount">0/750</div>
       <div class="popup-image-preview" id="popupImagePreview"></div>
       <div class="popup-button-group">
         <label class="upload-btn">

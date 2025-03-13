@@ -6,44 +6,6 @@
   <title>Sign Up - KU Social Platform</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    /* Sign Up Page Specific Styles */
-    .signup-container {
-      width: 90vw;
-      max-width: 400px;
-      margin: 100px auto;
-      padding: 20px;
-      background-color: var(--bg-color);
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      color: var(--font-color);
-    }
-    .signup-container h1 {
-      margin-bottom: 20px;
-    }
-    .signup-container input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid var(--font-color);
-      border-radius: 4px;
-      background-color: #333; /* dark grey */
-      color: var(--font-color);
-    }
-    .signup-container button {
-      padding: 10px 20px;
-      cursor: pointer;
-      border: 1px solid var(--font-color);
-      background-color: transparent;
-      color: var(--font-color);
-    }
-    .error-message {
-      color: red;
-      margin-top: 10px;
-      display: none;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -52,7 +14,6 @@
       <input type="text" id="firstName" placeholder="First Name">
       <input type="text" id="lastName" placeholder="Last Name">
       <input type="text" id="username" placeholder="Username">
-      <!-- Added Email Input -->
       <input type="email" id="email" placeholder="Email">
       <input type="password" id="password" placeholder="Password">
       <input type="password" id="confirmPassword" placeholder="Confirm Password">
@@ -60,9 +21,6 @@
       <p id="errorMessage" class="error-message">Error message here</p>
     </div>
   </div>
-  
-
-  <!-- Load as a module if you're using module syntax in signup.js -->
   <script type="module" src="signup.js"></script>
 </body>
 </html>

@@ -5,127 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Account</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <link rel="stylesheet" href="style.css" />
-  <style>
-    /* Account Page Specific Styles */
-    .account-container {
-      width: 80vw;
-      max-width: 600px;
-      height: 80vh;
-      margin: 80px auto;
-      padding: 20px;
-      background-color: var(--bg-color);
-      border-radius: 8px;
-      text-align: center;
-      position: relative;
-      color: var(--font-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Back Button fixed at the very top left of the screen */
-    .back-btn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      padding: 8px 16px;
-      border: 1px solid var(--font-color);
-      background-color: var(--bg-color);
-      cursor: pointer;
-      z-index: 1002;
-    }
-    /* Profile Image Container: 80% of container width and square (aspect-ratio: 1) */
-    .profile-image-container {
-      width: 80%;
-      max-width: 400px;
-      aspect-ratio: 1;
-      margin: 20px auto;
-      border: 1px solid var(--font-color);
-      border-radius: 8px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .profile-image-container img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .username-display {
-      margin-bottom: 20px;
-      font-size: 1.5em;
-    }
-    .change-btn {
-      padding: 10px 20px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      border: 1px solid var(--font-color);
-      background-color: transparent;
-      color: var(--font-color);
-    }
-    /* Popup Styles */
-    .account-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      max-width: 500px;
-      background-color: #333;
-      border: 2px solid #fff;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      z-index: 1001;
-      display: none;
-      text-align: center;
-      color: var(--font-color);
-    }
-    .account-popup h2 {
-      margin-bottom: 15px;
-    }
-    .account-popup img {
-      width: 100%;
-      max-height: 200px;
-      object-fit: contain;
-      border-radius: 4px;
-      margin-bottom: 15px;
-      display: none;
-    }
-    .account-popup label.upload-btn {
-      display: inline-block;
-      padding: 10px 20px;
-      margin: 15px auto;
-      background-color: #333;
-      border: 1px solid #fff;
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--font-color);
-    }
-    .account-popup label.upload-btn input {
-      display: none;
-    }
-    .account-popup input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #fff;
-      border-radius: 4px;
-      background-color: #333;
-      color: var(--font-color);
-    }
-    .account-popup .ok-btn {
-      padding: 10px 20px;
-      cursor: pointer;
-      border: 1px solid var(--font-color);
-      background-color: transparent;
-      color: var(--font-color);
-    }
-  </style>
 </head>
 <body>
   <button class="back-btn" id="backBtn">Back</button>
@@ -151,6 +31,6 @@
     <input type="text" id="newUsername" placeholder="New Username">
     <button class="ok-btn" id="okBtn">OK</button>
   </div>
-  <script src="account.js"></script>
+  <script type="module" src="account.js"></script>
 </body>
 </html>
