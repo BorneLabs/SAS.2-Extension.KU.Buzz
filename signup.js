@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let authUserId = null;
     try {
       // Try signing up the user using Supabase Auth.
-      // Email confirmations should be disabled for immediate registration.
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (error) {
-        // If the error indicates the user is already registered, then sign in instead.
         if (error.message.toLowerCase().includes("already registered")) {
           console.log("User already registered, signing in...");
           const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -72,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (existingUser) {
         console.log("Existing user record found in Users table with id:", existingUser.id);
-        // Optionally, if the existing record's id doesn't match authUserId, you could delete it and insert a new record.
         if (existingUser.id !== authUserId) {
           console.log("Existing user record id does not match authenticated user id. Deleting old record...");
           await supabase.from('Users').delete().eq('email', email);
@@ -103,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Redirect to home page after successful registration/sign in.
       window.location.href = "home.html";
 
     } catch (err) {

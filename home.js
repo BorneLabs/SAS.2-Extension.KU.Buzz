@@ -1,33 +1,35 @@
 import supabase from "./supabase-config.js";
 
-let currentUser; // Global variable for the authenticated user's record
-
 document.addEventListener('DOMContentLoaded', async () => {
-  // Retrieve the authenticated user from Supabase Auth
+  // Update header profile image with cache busting
+  const profileBtnImg = document.querySelector('.profile-btn img');
+  const storedProfileImage = localStorage.getItem('profileImage') || "Assets/Images/default-logo.jpg";
+  if (profileBtnImg) {
+    profileBtnImg.src = storedProfileImage + '?v=' + new Date().getTime();
+  }
+
+  // Get authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user ? user.id : null;
-  console.log("Authenticated user id in home.js:", userId);
   if (!userId) {
-    console.error("No authenticated user found. Redirecting to sign in.");
     window.location.href = "index.html";
     return;
   }
   
-  // Retrieve and store the user record from the Users table
+  // Get user record from Users table
   const { data: userRecord, error: userRecordError } = await supabase
     .from('Users')
     .select('*')
     .eq('id', userId)
     .single();
-  console.log("User record from Users table:", userRecord, userRecordError);
   if (!userRecord) {
-    window.alert("Your profile was not found in our database. Please sign out and sign in again.");
+    window.alert("Your profile was not found. Please sign out and sign in again.");
     window.location.href = "index.html";
     return;
   }
-  currentUser = userRecord;
+  const currentUser = userRecord;
   
-  // DOM Elements
+  // DOM elements
   const postsContainer = document.getElementById('postsContainer');
   const floatingPostBtn = document.getElementById('floatingPostBtn');
   const newPostPopup = document.getElementById('newPostPopup');
@@ -36,23 +38,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   const popupImageUpload = document.getElementById('popupImageUpload');
   const popupImagePreview = document.getElementById('popupImagePreview');
   const popupPostBtn = document.getElementById('popupPostBtn');
+  const charCount = document.getElementById('charCount'); // Character counter element
   
   let popupCurrentImage = null;
   
-  // Open the new post popup
+  // Update character counter on input
+  popupPostText.addEventListener('input', () => {
+    const length = popupPostText.value.length;
+    charCount.textContent = `${length}/750`;
+  });
+  
+  // Open new post popup
   if (floatingPostBtn) {
     floatingPostBtn.addEventListener('click', () => {
       newPostPopup.style.display = 'block';
     });
-  } else {
-    console.error("Floating Post Button not found");
   }
   
   if (popupCloseBtn) {
     popupCloseBtn.addEventListener('click', closePopup);
   }
   
-  // Preview the selected image for a new post
+  // Preview image upload for new post
   if (popupImageUpload) {
     popupImageUpload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -68,7 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   
-  // Create a post on button click or pressing Enter (without Shift)
   if (popupPostBtn) {
     popupPostBtn.addEventListener('click', async () => {
       await createPost(popupPostText.value.trim(), popupCurrentImage);
@@ -85,30 +91,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   
-  // Initial fetch of posts (and their comments)
+  // Fetch posts initially
   fetchPosts();
   
-  // --- FUNCTIONS ---
+  // Real-time subscription for new comments
+  const commentSubscription = supabase
+    .channel('comments')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Comments' }, (payload) => {
+      const newComment = payload.new;
+      const postElement = document.querySelector(`article[data-post-id="${newComment.post_id}"]`);
+      if (postElement) {
+        const commentsContainer = postElement.querySelector('.comments-container');
+        if (!newComment.Users) {
+          newComment.Users = { username: currentUser.username, profile_image: currentUser.profile_image };
+        }
+        addCommentToDOM(newComment, commentsContainer);
+      }
+    })
+    .subscribe();
   
-  // Convert a Data URL to a Blob for image upload
+  // Helper: Convert Data URL to Blob
   function dataURLtoBlob(dataurl) {
-    let arr = dataurl.split(','),
-        mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]),
-        n = bstr.length,
-        u8arr = new Uint8Array(n);
-    while (n--) {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
     return new Blob([u8arr], { type: mime });
   }
   
-  // Create a new post linked to the authenticated user
+  // Create new post with a 750-character limit
   async function createPost(content, imageDataUrl) {
-    if (!content && !imageDataUrl) {
-      console.warn("No content or image provided for the post.");
+    if (content.length > 750) {
+      alert("Your post cannot exceed 750 characters.");
       return;
     }
+    if (!content && !imageDataUrl) return;
     let imageUrl = null;
     if (imageDataUrl) {
       const fileName = `post_${Date.now()}.png`;
@@ -129,20 +150,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("Error getting public URL:", publicUrlError.message);
       }
       imageUrl = publicUrlData.publicUrl;
-      console.log("Image uploaded successfully. URL:", imageUrl);
     }
     const { data, error } = await supabase
       .from('Posts')
-      .insert([{ content: content, image_url: imageUrl, user_id: userId }]);
+      .insert([{ content, image_url: imageUrl, user_id: userId }])
+      .single();
     if (error) {
       console.error("Error saving post:", error.message);
       return;
     }
-    console.log("Post saved:", data);
-    fetchPosts(); // Refresh posts to include the new post and its comments
+    fetchPosts();
   }
   
-  // Fetch posts with joined user info and their comments, ordered by created_at descending
+  // Fetch posts and their comments
   async function fetchPosts() {
     const { data, error } = await supabase
       .from('Posts')
@@ -155,7 +175,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error("Error fetching posts:", error.message);
       return;
     }
-    console.log("Fetched posts:", data);
     postsContainer.innerHTML = "";
     for (const post of data) {
       const postElement = createPostElement(post);
@@ -168,19 +187,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   function createPostElement(post) {
     const postArticle = document.createElement('article');
     postArticle.className = 'post';
-    const userProfileImage = post.Users?.profile_image || "https://zobmevhwmacbmierdlca.supabase.co/storage/v1/object/public/profile-images//default.jpg";
+    postArticle.setAttribute('data-post-id', post.id);
+    const userProfileImage = post.Users?.profile_image || "Assets/Images/default-logo.jpg";
     const username = post.Users?.username || "Unknown User";
     postArticle.innerHTML = `
-      <div class="post-content">
-        ${post.image_url ? `<img src="${post.image_url}" alt="Post Image">` : ''}
-        ${post.content ? `<p>${post.content}</p>` : ''}
-      </div>
       <div class="post-author">
         <img src="${userProfileImage}" alt="Author">
         <span>@${username}</span>
       </div>
+      <div class="post-content">
+        ${post.content ? `<p>${post.content}</p>` : ''}
+        ${post.image_url ? `<img src="${post.image_url}" alt="Post Image">` : ''}
+      </div>
       <button class="toggle-comments-btn">Show Comments</button>
-      <div class="comments-section" style="display: none;">
+      <div class="comments-section">
         <div class="comments-container"></div>
         <div class="comment-input">
           <textarea placeholder="Add a comment..." rows="2"></textarea>
@@ -231,26 +251,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   
-  // Insert a new comment into the Comments table and display it immediately
+  // Insert a new comment and display it immediately
   async function createComment(postId, commentText, commentsContainer) {
     const { data, error } = await supabase
       .from('Comments')
       .insert([{ post_id: postId, user_id: userId, comment_text: commentText }])
+      .select()
       .single();
     if (error) {
       console.error("Error saving comment:", error.message);
       return;
     }
-    console.log("Comment saved:", data);
-    // If the returned comment doesn't include the joined Users info, set it to currentUser
+    if (!data) return;
     if (!data.Users) {
       data.Users = currentUser;
     }
     addCommentToDOM(data, commentsContainer);
     
-    // Ensure the comment section is visible
     const commentsSection = commentsContainer.parentElement;
-    if (!commentsSection || commentsSection.style.display === 'none' || commentsSection.style.display === '') {
+    if (!commentsSection || commentsSection.style.display === 'none') {
       commentsSection.style.display = 'block';
       const toggleBtn = commentsSection.parentElement.querySelector('.toggle-comments-btn');
       if (toggleBtn) {
@@ -259,7 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   
-  // Fetch comments for a given post and display them in its comments container (newest first)
+  // Fetch comments for a given post
   async function fetchComments(postId, postElement) {
     const { data, error } = await supabase
       .from('Comments')
@@ -280,20 +299,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
   
-  // Append a comment element to the DOM at the top of the comments container
+  // Add comment to DOM
   function addCommentToDOM(comment, container) {
-    const commenterImage = comment.Users?.profile_image || currentUser.profile_image || "https://zobmevhwmacbmierdlca.supabase.co/storage/v1/object/public/profile-images//default.jpg";
+    const commenterImage = comment.Users?.profile_image || currentUser.profile_image || "Assets/Images/default-logo.jpg";
     const commenterUsername = comment.Users?.username || currentUser.username || "Unknown User";
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
     commentDiv.innerHTML = `
       <img src="${commenterImage}" alt="Commenter">
-      <p class="comment-text"><strong>@${commenterUsername}:</strong> ${comment.comment_text}</p>
+      <div class="comment-body">
+        <p class="comment-username">@${commenterUsername}</p>
+        <p class="comment-text">${comment.comment_text}</p>
+      </div>
     `;
     container.insertBefore(commentDiv, container.firstChild);
   }
   
-  // Close the new post popup and reset its fields
+  // Close new post popup and reset fields
   function closePopup() {
     if (popupPostText) popupPostText.value = '';
     if (popupImagePreview) {
@@ -303,5 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     popupCurrentImage = null;
     if (newPostPopup) newPostPopup.style.display = 'none';
     if (popupImageUpload) popupImageUpload.value = '';
+    // Reset the character counter as well
+    charCount.textContent = '0/750';
   }
 });
