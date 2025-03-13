@@ -24,8 +24,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = "home.html";
   });
 
+  // Consolidated event listener for "Change" button
   changeBtn.addEventListener('click', () => {
-    accountPopup.style.display = 'block';
+    if (changeBtn.textContent.trim() === "Save") {
+      window.location.href = "home.html";
+    } else {
+      accountPopup.style.display = 'block';
+    }
   });
 
   newProfileImage.addEventListener('change', function(e) {
@@ -71,11 +76,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     newProfileImage.value = "";
     newUsername.value = "";
     popupPreviewImage.style.display = 'none';
-  });
-
-  changeBtn.addEventListener('click', () => {
-    if (changeBtn.textContent.trim() === "Save") {
-      window.location.href = "home.html";
-    }
   });
 });

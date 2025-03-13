@@ -277,7 +277,7 @@ html, body {
 
 /* New Post Popup - 80% width */
 .new-post-popup {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -289,8 +289,10 @@ html, body {
     display: none;
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-}
+    z-index: 1000;
+  }
+  
+
 
 .new-post-content h2 {
     margin-bottom: 10px;

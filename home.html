@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KU Social Platform</title>
+  <!-- Load Supabase JS via CDN before your module script -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,7 +16,7 @@
       <header class="posts-header">
         <div class="header-left">
           <button class="profile-btn" onclick="location.href='account.html'">
-            <img src="Assets/Images/pr.png" alt="Profile">
+            <img src="Assets/Images/default-logo.jpg" alt="Profile">
           </button>
           <h1 class="header-title">KU Post Feed</h1>
         </div>
@@ -33,27 +33,29 @@
         <!-- Posts will be dynamically added here -->
       </section>
       
-      <!-- New Post Popup -->
-      <div class="new-post-popup" id="newPostPopup">
-        <div class="new-post-content">
-          <button class="popup-close-btn" id="popupCloseBtn">&times;</button>
-          <h2>Create a Post</h2>
-          <textarea id="popupPostText" placeholder="What's on your mind?" rows="4"></textarea>
-          <div class="popup-image-preview" id="popupImagePreview"></div>
-          <div class="popup-button-group">
-            <label class="upload-btn">
-              Upload
-              <input type="file" id="popupImageUpload" accept="image/*">
-            </label>
-            <button id="popupPostBtn" class="post-btn">Post</button>
-          </div>
-        </div>
-      </div>
-      
       <!-- Floating New Post Button -->
       <button class="floating-post-btn" id="floatingPostBtn">New <br> Post</button>
     </div>
   </div>
-  <script src="home.js"></script>
+  
+  <!-- New Post Popup placed outside posts-column to avoid clipping -->
+  <div class="new-post-popup" id="newPostPopup">
+    <div class="new-post-content">
+      <button class="popup-close-btn" id="popupCloseBtn">&times;</button>
+      <h2>Create a Post</h2>
+      <textarea id="popupPostText" placeholder="What's on your mind?" rows="4"></textarea>
+      <div class="popup-image-preview" id="popupImagePreview"></div>
+      <div class="popup-button-group">
+        <label class="upload-btn">
+          Upload
+          <input type="file" id="popupImageUpload" accept="image/*" />
+        </label>
+        <button id="popupPostBtn" class="post-btn">Post</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Load the home.js module -->
+  <script type="module" src="./home.js"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 import supabase from "./supabase-config.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
+console.log("home.js loaded");
+
+document.addEventListener('DOMContentLoaded', () => {
   const PROFILE_PHOTO_KEY = 'profileImage';
   const USERNAME_KEY = 'username';
   const defaultProfileImage = "Assets/Images/default-logo.jpg";
@@ -45,10 +47,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   let popupCurrentImage = null;
   
+  console.log("Floating Post Button:", floatingPostBtn);
+  
   if (floatingPostBtn) {
     floatingPostBtn.addEventListener('click', () => {
+      console.log("New Post button clicked");
       newPostPopup.style.display = 'block';
     });
+  } else {
+    console.error("Floating Post button not found");
   }
   
   if (popupCloseBtn) {
@@ -154,6 +161,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
     container.appendChild(commentDiv);
   }
-  
-  // Optional: Search functionality code (if implemented)
 });

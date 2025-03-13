@@ -6,7 +6,6 @@
   <title>Sign In - KU Social Platform</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     /* Login Page Specific Styles */
     .login-container {
@@ -30,7 +29,7 @@
       margin-bottom: 15px;
       border: 1px solid var(--font-color);
       border-radius: 4px;
-      background-color: #333; /* Dark grey */
+      background-color: #333;
       color: var(--font-color);
     }
     .login-container button {
@@ -52,13 +51,16 @@
   <div class="container">
     <div class="login-container">
       <h1>Sign In</h1>
-      <input type="text" id="username" placeholder="Username">
+      <!-- Note: Changed id from "username" to "email" -->
+      <input type="text" id="email" placeholder="Email">
       <input type="password" id="password" placeholder="Password">
       <button id="signInBtn">Sign In</button>
       <button id="signUpBtn">Sign Up</button>
       <p id="errorMessage" class="error-message">Invalid credentials. Please try again.</p>
     </div>
   </div>
-  <script src="index.js"></script>
+  <!-- Load the script as a module -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="index.js"></script>
 </body>
 </html>
