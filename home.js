@@ -1,7 +1,9 @@
 import supabase from "./supabase-config.js";
 
+let currentUser; // Global variable for the authenticated user's record
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // Retrieve the authenticated user
+  // Retrieve the authenticated user from Supabase Auth
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user ? user.id : null;
   console.log("Authenticated user id in home.js:", userId);
@@ -10,8 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = "index.html";
     return;
   }
-
-  // Check if a user record exists in the Users table with the same id
+  
+  // Retrieve and store the user record from the Users table
   const { data: userRecord, error: userRecordError } = await supabase
     .from('Users')
     .select('*')
@@ -19,13 +21,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     .single();
   console.log("User record from Users table:", userRecord, userRecordError);
   if (!userRecord) {
-    console.error("No matching user record in Users table for user id:", userId);
     window.alert("Your profile was not found in our database. Please sign out and sign in again.");
     window.location.href = "index.html";
     return;
   }
-
-  // DOM Elements for posts and new post popup
+  currentUser = userRecord;
+  
+  // DOM Elements
   const postsContainer = document.getElementById('postsContainer');
   const floatingPostBtn = document.getElementById('floatingPostBtn');
   const newPostPopup = document.getElementById('newPostPopup');
@@ -34,9 +36,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const popupImageUpload = document.getElementById('popupImageUpload');
   const popupImagePreview = document.getElementById('popupImagePreview');
   const popupPostBtn = document.getElementById('popupPostBtn');
-
+  
   let popupCurrentImage = null;
-
+  
   // Open the new post popup
   if (floatingPostBtn) {
     floatingPostBtn.addEventListener('click', () => {
@@ -45,12 +47,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     console.error("Floating Post Button not found");
   }
-
+  
   if (popupCloseBtn) {
     popupCloseBtn.addEventListener('click', closePopup);
   }
-
-  // When an image is selected, preview it
+  
+  // Preview the selected image for a new post
   if (popupImageUpload) {
     popupImageUpload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -65,8 +67,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       reader.readAsDataURL(file);
     });
   }
-
-  // Create post on button click or pressing Enter (without Shift)
+  
+  // Create a post on button click or pressing Enter (without Shift)
   if (popupPostBtn) {
     popupPostBtn.addEventListener('click', async () => {
       await createPost(popupPostText.value.trim(), popupCurrentImage);
@@ -82,11 +84,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-
+  
+  // Initial fetch of posts (and their comments)
   fetchPosts();
-
+  
   // --- FUNCTIONS ---
-
+  
   // Convert a Data URL to a Blob for image upload
   function dataURLtoBlob(dataurl) {
     let arr = dataurl.split(','),
@@ -99,8 +102,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     return new Blob([u8arr], { type: mime });
   }
-
-  // Create a new post, linking it to the authenticated user
+  
+  // Create a new post linked to the authenticated user
   async function createPost(content, imageDataUrl) {
     if (!content && !imageDataUrl) {
       console.warn("No content or image provided for the post.");
@@ -128,7 +131,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       imageUrl = publicUrlData.publicUrl;
       console.log("Image uploaded successfully. URL:", imageUrl);
     }
-
     const { data, error } = await supabase
       .from('Posts')
       .insert([{ content: content, image_url: imageUrl, user_id: userId }]);
@@ -137,10 +139,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     console.log("Post saved:", data);
-    fetchPosts(); // Refresh posts to show the updated order
+    fetchPosts(); // Refresh posts to include the new post and its comments
   }
-
-  // Fetch posts along with user details using a join on Users, ordered by created_at descending
+  
+  // Fetch posts with joined user info and their comments, ordered by created_at descending
   async function fetchPosts() {
     const { data, error } = await supabase
       .from('Posts')
@@ -155,20 +157,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     console.log("Fetched posts:", data);
     postsContainer.innerHTML = "";
-    // Since the data is already in descending order, appending in order will keep the newest on top.
-    data.forEach(post => {
-      displayPost(post);
-    });
+    for (const post of data) {
+      const postElement = createPostElement(post);
+      postsContainer.appendChild(postElement);
+      await fetchComments(post.id, postElement);
+    }
   }
-
-  // Render a post with the correct user details
-  function displayPost(post) {
+  
+  // Create a DOM element for a post
+  function createPostElement(post) {
     const postArticle = document.createElement('article');
     postArticle.className = 'post';
-
     const userProfileImage = post.Users?.profile_image || "https://zobmevhwmacbmierdlca.supabase.co/storage/v1/object/public/profile-images//default.jpg";
     const username = post.Users?.username || "Unknown User";
-
     postArticle.innerHTML = `
       <div class="post-content">
         ${post.image_url ? `<img src="${post.image_url}" alt="Post Image">` : ''}
@@ -179,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <span>@${username}</span>
       </div>
       <button class="toggle-comments-btn">Show Comments</button>
-      <div class="comments-section">
+      <div class="comments-section" style="display: none;">
         <div class="comments-container"></div>
         <div class="comment-input">
           <textarea placeholder="Add a comment..." rows="2"></textarea>
@@ -187,17 +188,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
     `;
-    setupPostInteractions(postArticle);
-    postsContainer.appendChild(postArticle); // Append to maintain order from query
+    setupPostInteractions(postArticle, post.id);
+    return postArticle;
   }
-
-  // Set up comment toggling and adding for a post element
-  function setupPostInteractions(postElement) {
+  
+  // Set up comment toggle and submission for a post element
+  function setupPostInteractions(postElement, postId) {
     const toggleBtn = postElement.querySelector('.toggle-comments-btn');
     const commentsSection = postElement.querySelector('.comments-section');
     if (toggleBtn && commentsSection) {
       toggleBtn.addEventListener('click', () => {
-        if (!commentsSection.style.display || commentsSection.style.display === 'none') {
+        if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
           commentsSection.style.display = 'block';
           toggleBtn.textContent = 'Hide Comments';
         } else {
@@ -210,40 +211,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     const commentTextarea = postElement.querySelector('.comment-input textarea');
     const commentsContainer = postElement.querySelector('.comments-container');
     if (commentBtn && commentTextarea && commentsContainer) {
-      commentBtn.addEventListener('click', () => {
+      commentBtn.addEventListener('click', async () => {
         const commentText = commentTextarea.value.trim();
         if (commentText) {
-          addComment(commentsContainer, commentText);
+          await createComment(postId, commentText, commentsContainer);
           commentTextarea.value = '';
         }
       });
-      commentTextarea.addEventListener('keydown', (e) => {
+      commentTextarea.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           const commentText = commentTextarea.value.trim();
           if (commentText) {
-            addComment(commentsContainer, commentText);
+            await createComment(postId, commentText, commentsContainer);
             commentTextarea.value = '';
           }
         }
       });
     }
   }
-
-  // Append a new comment element (front-end only)
-  function addComment(container, text) {
-    // Use the currently authenticated user's profile image from userRecord if available
-    const commenterImage = userRecord?.profile_image || "https://zobmevhwmacbmierdlca.supabase.co/storage/v1/object/public/profile-images//default.jpg";
+  
+  // Insert a new comment into the Comments table and display it immediately
+  async function createComment(postId, commentText, commentsContainer) {
+    const { data, error } = await supabase
+      .from('Comments')
+      .insert([{ post_id: postId, user_id: userId, comment_text: commentText }])
+      .single();
+    if (error) {
+      console.error("Error saving comment:", error.message);
+      return;
+    }
+    console.log("Comment saved:", data);
+    // If the returned comment doesn't include the joined Users info, set it to currentUser
+    if (!data.Users) {
+      data.Users = currentUser;
+    }
+    addCommentToDOM(data, commentsContainer);
+    
+    // Ensure the comment section is visible
+    const commentsSection = commentsContainer.parentElement;
+    if (!commentsSection || commentsSection.style.display === 'none' || commentsSection.style.display === '') {
+      commentsSection.style.display = 'block';
+      const toggleBtn = commentsSection.parentElement.querySelector('.toggle-comments-btn');
+      if (toggleBtn) {
+        toggleBtn.textContent = 'Hide Comments';
+      }
+    }
+  }
+  
+  // Fetch comments for a given post and display them in its comments container (newest first)
+  async function fetchComments(postId, postElement) {
+    const { data, error } = await supabase
+      .from('Comments')
+      .select(`
+        id, comment_text, created_at, user_id,
+        Users (username, profile_image)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error("Error fetching comments:", error.message);
+      return;
+    }
+    const commentsContainer = postElement.querySelector('.comments-container');
+    commentsContainer.innerHTML = "";
+    data.forEach(comment => {
+      addCommentToDOM(comment, commentsContainer);
+    });
+  }
+  
+  // Append a comment element to the DOM at the top of the comments container
+  function addCommentToDOM(comment, container) {
+    const commenterImage = comment.Users?.profile_image || currentUser.profile_image || "https://zobmevhwmacbmierdlca.supabase.co/storage/v1/object/public/profile-images//default.jpg";
+    const commenterUsername = comment.Users?.username || currentUser.username || "Unknown User";
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
     commentDiv.innerHTML = `
       <img src="${commenterImage}" alt="Commenter">
-      <p class="comment-text">${text}</p>
+      <p class="comment-text"><strong>@${commenterUsername}:</strong> ${comment.comment_text}</p>
     `;
-    container.appendChild(commentDiv);
+    container.insertBefore(commentDiv, container.firstChild);
   }
-
-  // Close the new post popup and reset input fields
+  
+  // Close the new post popup and reset its fields
   function closePopup() {
     if (popupPostText) popupPostText.value = '';
     if (popupImagePreview) {
