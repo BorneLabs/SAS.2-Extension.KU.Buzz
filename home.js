@@ -1,6 +1,10 @@
+import { parseTimestamp, formatLiveTime } from "./time-utils.js";
 import supabase from "./supabase-config.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Prevent duplicate submissions
+  let isPosting = false;
+
   // Update header profile image with cache busting
   const profileBtnImg = document.querySelector('.profile-btn img');
   const storedProfileImage = localStorage.getItem('profileImage') || "Assets/Images/default-logo.jpg";
@@ -15,9 +19,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = "index.html";
     return;
   }
-  
+
   // Get user record from Users table
-  const { data: userRecord, error: userRecordError } = await supabase
+  const { data: userRecord } = await supabase
     .from('Users')
     .select('*')
     .eq('id', userId)
@@ -28,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   const currentUser = userRecord;
-  
+
   // DOM elements
   const postsContainer = document.getElementById('postsContainer');
   const floatingPostBtn = document.getElementById('floatingPostBtn');
@@ -39,26 +43,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   const popupImagePreview = document.getElementById('popupImagePreview');
   const popupPostBtn = document.getElementById('popupPostBtn');
   const charCount = document.getElementById('charCount'); // Character counter element
-  
+
   let popupCurrentImage = null;
-  
+
   // Update character counter on input
   popupPostText.addEventListener('input', () => {
     const length = popupPostText.value.length;
     charCount.textContent = `${length}/750`;
   });
-  
+
   // Open new post popup
   if (floatingPostBtn) {
     floatingPostBtn.addEventListener('click', () => {
       newPostPopup.style.display = 'block';
     });
   }
-  
+
+  // Close popup function
+  function closePopup() {
+    popupPostText.value = '';
+    charCount.textContent = '0/750';
+    if (popupImagePreview) {
+      popupImagePreview.innerHTML = '';
+      popupImagePreview.style.display = 'none';
+    }
+    popupCurrentImage = null;
+    newPostPopup.style.display = 'none';
+    popupPostBtn.disabled = false;
+    isPosting = false;
+  }
+
   if (popupCloseBtn) {
     popupCloseBtn.addEventListener('click', closePopup);
   }
-  
+
   // Preview image upload for new post
   if (popupImageUpload) {
     popupImageUpload.addEventListener('change', (e) => {
@@ -74,27 +92,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       reader.readAsDataURL(file);
     });
   }
-  
+
+  // Prevent duplicate submissions by disabling the post button
+  async function handlePostSubmission() {
+    if (isPosting) return;
+    isPosting = true;
+    popupPostBtn.disabled = true;
+    await createPost(popupPostText.value.trim(), popupCurrentImage);
+    closePopup();
+  }
+
   if (popupPostBtn) {
-    popupPostBtn.addEventListener('click', async () => {
-      await createPost(popupPostText.value.trim(), popupCurrentImage);
-      closePopup();
-    });
+    popupPostBtn.addEventListener('click', handlePostSubmission);
   }
   if (popupPostText) {
     popupPostText.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        await createPost(popupPostText.value.trim(), popupCurrentImage);
-        closePopup();
+        await handlePostSubmission();
       }
     });
   }
-  
-  // Fetch posts initially
+
+  // Fetch posts initially (from server)
   fetchPosts();
-  
-  // Real-time subscription for new comments
+
+  // Real-time subscription for new comments (from server)
   const commentSubscription = supabase
     .channel('comments')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Comments' }, (payload) => {
@@ -109,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     })
     .subscribe();
-  
+
   // Helper: Convert Data URL to Blob
   function dataURLtoBlob(dataurl) {
     const arr = dataurl.split(',');
@@ -117,13 +140,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
-    while(n--) {
+    while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
     return new Blob([u8arr], { type: mime });
   }
-  
-  // Create new post with a 750-character limit
+
+  // Update times on page every minute (single instance)
+  setInterval(() => {
+    document.querySelectorAll(".post-time").forEach(elem => {
+      const t = elem.getAttribute("data-time");
+      elem.textContent = formatLiveTime(t);
+    });
+    document.querySelectorAll(".comment-time").forEach(elem => {
+      const t = elem.getAttribute("data-time");
+      elem.textContent = formatLiveTime(t);
+    });
+  }, 60000);
+
+  // Create new post with a 750-character limit using local timestamp for UI display
   async function createPost(content, imageDataUrl) {
     if (content.length > 750) {
       alert("Your post cannot exceed 750 characters.");
@@ -151,18 +186,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       imageUrl = publicUrlData.publicUrl;
     }
+    // Generate a local timestamp for immediate UI display (we do not override the server timestamp)
+    const localTime = new Date().toISOString();
+    
+    // Insert post and request returned data with .select('*')
     const { data, error } = await supabase
       .from('Posts')
       .insert([{ content, image_url: imageUrl, user_id: userId }])
+      .select('*')
       .single();
-    if (error) {
-      console.error("Error saving post:", error.message);
+    if (error || !data) {
+      console.error("Error saving post:", error ? error.message : "No data returned");
       return;
     }
-    fetchPosts();
+    
+    // Use currentUser as a fallback if the inserted record doesn't include joined Users data
+    const newPostData = { 
+      ...data, 
+      created_at: localTime, 
+      Users: data.Users ? data.Users : currentUser 
+    };
+    const newPostElement = createPostElement(newPostData);
+    postsContainer.prepend(newPostElement);
   }
-  
-  // Fetch posts and their comments
+
+  // Fetch posts and their comments from server
   async function fetchPosts() {
     const { data, error } = await supabase
       .from('Posts')
@@ -182,18 +230,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       await fetchComments(post.id, postElement);
     }
   }
-  
-  // Create a DOM element for a post
+
+  // Create a DOM element for a post with time displayed next to the username
   function createPostElement(post) {
     const postArticle = document.createElement('article');
     postArticle.className = 'post';
     postArticle.setAttribute('data-post-id', post.id);
-    const userProfileImage = post.Users?.profile_image || "Assets/Images/default-logo.jpg";
-    const username = post.Users?.username || "Unknown User";
+
+    // Use post.Users if available; otherwise, fall back to currentUser
+    const postUser = post.Users || currentUser;
+    const userProfileImage = postUser.profile_image || "Assets/Images/default-logo.jpg";
+    const username = postUser.username || "Unknown User";
+    const formattedTime = formatLiveTime(post.created_at);
+
+    // Time is displayed next to the username in the same line
     postArticle.innerHTML = `
       <div class="post-author">
         <img src="${userProfileImage}" alt="Author">
-        <span>@${username}</span>
+        <span class="post-username">@${username}</span>
+        <span class="post-time" data-time="${post.created_at}">${formattedTime}</span>
       </div>
       <div class="post-content">
         ${post.content ? `<p>${post.content}</p>` : ''}
@@ -211,7 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupPostInteractions(postArticle, post.id);
     return postArticle;
   }
-  
+
   // Set up comment toggle and submission for a post element
   function setupPostInteractions(postElement, postId) {
     const toggleBtn = postElement.querySelector('.toggle-comments-btn');
@@ -250,9 +305,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   }
-  
-  // Insert a new comment and display it immediately
+
+  // Insert a new comment and display it immediately using local timestamp for UI display
   async function createComment(postId, commentText, commentsContainer) {
+    const localTime = new Date().toISOString();
     const { data, error } = await supabase
       .from('Comments')
       .insert([{ post_id: postId, user_id: userId, comment_text: commentText }])
@@ -262,12 +318,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error("Error saving comment:", error.message);
       return;
     }
-    if (!data) return;
-    if (!data.Users) {
-      data.Users = currentUser;
-    }
-    addCommentToDOM(data, commentsContainer);
-    
+    // Use localTime for immediate display and fall back to currentUser if no Users data returned
+    const commentForDisplay = { ...data, created_at: localTime, Users: data.Users ? data.Users : currentUser };
+    addCommentToDOM(commentForDisplay, commentsContainer);
+
     const commentsSection = commentsContainer.parentElement;
     if (!commentsSection || commentsSection.style.display === 'none') {
       commentsSection.style.display = 'block';
@@ -277,8 +331,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   }
-  
-  // Fetch comments for a given post
+
+  // Fetch comments for a given post from server
   async function fetchComments(postId, postElement) {
     const { data, error } = await supabase
       .from('Comments')
@@ -298,34 +352,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       addCommentToDOM(comment, commentsContainer);
     });
   }
-  
-  // Add comment to DOM
+
+  // Add comment to DOM with time displayed next to the username
   function addCommentToDOM(comment, container) {
     const commenterImage = comment.Users?.profile_image || currentUser.profile_image || "Assets/Images/default-logo.jpg";
     const commenterUsername = comment.Users?.username || currentUser.username || "Unknown User";
+    const formattedTime = formatLiveTime(comment.created_at);
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
     commentDiv.innerHTML = `
       <img src="${commenterImage}" alt="Commenter">
       <div class="comment-body">
-        <p class="comment-username">@${commenterUsername}</p>
+        <span class="comment-username">@${commenterUsername}</span>
+        <span class="comment-time" data-time="${comment.created_at}">${formattedTime}</span>
         <p class="comment-text">${comment.comment_text}</p>
       </div>
     `;
     container.insertBefore(commentDiv, container.firstChild);
-  }
-  
-  // Close new post popup and reset fields
-  function closePopup() {
-    if (popupPostText) popupPostText.value = '';
-    if (popupImagePreview) {
-      popupImagePreview.innerHTML = '';
-      popupImagePreview.style.display = 'none';
-    }
-    popupCurrentImage = null;
-    if (newPostPopup) newPostPopup.style.display = 'none';
-    if (popupImageUpload) popupImageUpload.value = '';
-    // Reset the character counter as well
-    charCount.textContent = '0/750';
   }
 });
