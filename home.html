@@ -30,7 +30,7 @@
       
       <!-- Posts Container -->
       <section class="posts-container" id="postsContainer">
-        <!-- Posts will be dynamically added here -->
+        <!-- Posts will be dynamically added here by home.js -->
       </section>
       
       <!-- Floating New Post Button -->
@@ -38,12 +38,11 @@
     </div>
   </div>
   
-  <!-- New Post Popup placed outside posts-column to avoid clipping -->
+  <!-- New Post Popup (used for creating a post) -->
   <div class="new-post-popup" id="newPostPopup">
     <div class="new-post-content">
       <button class="popup-close-btn" id="popupCloseBtn">&times;</button>
       <h2>Create a Post</h2>
-      <!-- Set a character limit of 750 -->
       <textarea id="popupPostText" placeholder="What's on your mind?" rows="4" maxlength="750"></textarea>
       <!-- Character counter -->
       <div id="charCount">0/750</div>
@@ -58,7 +57,6 @@
     </div>
   </div>
   
-  <!-- Load the home.js module -->
   <script type="module" src="./home.js"></script>
 </body>
 </html>

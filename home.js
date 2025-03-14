@@ -2,16 +2,7 @@ import { parseTimestamp, formatLiveTime } from "./time-utils.js";
 import supabase from "./supabase-config.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Prevent duplicate submissions
-  let isPosting = false;
-
-  // Update header profile image with cache busting
-  const profileBtnImg = document.querySelector('.profile-btn img');
-  const storedProfileImage = localStorage.getItem('profileImage') || "Assets/Images/default-logo.jpg";
-  if (profileBtnImg) {
-    profileBtnImg.src = storedProfileImage + '?v=' + new Date().getTime();
-  }
-
+  // ------ Authentication Guard ------
   // Get authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user ? user.id : null;
@@ -20,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Get user record from Users table
+  // Retrieve user record from the Users table
   const { data: userRecord } = await supabase
     .from('Users')
     .select('*')
@@ -33,7 +24,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   const currentUser = userRecord;
 
-  // DOM elements
+  // ------ Update Header Profile Image ------
+  // Instead of using localStorage, use the current user's profile_image.
+  // If none is set, use the default.
+  const profileBtnImg = document.querySelector('.profile-btn img');
+  if (profileBtnImg) {
+    const currentProfileImage = currentUser.profile_image || "Assets/Images/default-logo.jpg";
+    profileBtnImg.src = currentProfileImage + '?v=' + new Date().getTime();
+  }
+
+  // ------ Lazy Loading Variables for Posts ------
+  let postLimit = 10;
+  let postOffset = 0;
+  let allPostsLoaded = false;
+
+  // ------ Other Global Variables ------
+  let isPosting = false; // Prevent duplicate submissions
+
+  // ------ DOM Elements ------
   const postsContainer = document.getElementById('postsContainer');
   const floatingPostBtn = document.getElementById('floatingPostBtn');
   const newPostPopup = document.getElementById('newPostPopup');
@@ -42,24 +50,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const popupImageUpload = document.getElementById('popupImageUpload');
   const popupImagePreview = document.getElementById('popupImagePreview');
   const popupPostBtn = document.getElementById('popupPostBtn');
-  const charCount = document.getElementById('charCount'); // Character counter element
+  const charCount = document.getElementById('charCount');
 
   let popupCurrentImage = null;
 
-  // Update character counter on input
+  // ------ New Post Popup: Character Counter & Events ------
   popupPostText.addEventListener('input', () => {
     const length = popupPostText.value.length;
     charCount.textContent = `${length}/750`;
   });
 
-  // Open new post popup
   if (floatingPostBtn) {
     floatingPostBtn.addEventListener('click', () => {
       newPostPopup.style.display = 'block';
     });
   }
 
-  // Close popup function
   function closePopup() {
     popupPostText.value = '';
     charCount.textContent = '0/750';
@@ -77,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     popupCloseBtn.addEventListener('click', closePopup);
   }
 
-  // Preview image upload for new post
   if (popupImageUpload) {
     popupImageUpload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -93,7 +98,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Prevent duplicate submissions by disabling the post button
   async function handlePostSubmission() {
     if (isPosting) return;
     isPosting = true;
@@ -114,10 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Fetch posts initially (from server)
-  fetchPosts();
-
-  // Real-time subscription for new comments (from server)
+  // ------ Real-Time Comment Subscription ------
   const commentSubscription = supabase
     .channel('comments')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Comments' }, (payload) => {
@@ -125,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const postElement = document.querySelector(`article[data-post-id="${newComment.post_id}"]`);
       if (postElement) {
         const commentsContainer = postElement.querySelector('.comments-container');
+        // Fallback if Users data is missing
         if (!newComment.Users) {
           newComment.Users = { username: currentUser.username, profile_image: currentUser.profile_image };
         }
@@ -133,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
     .subscribe();
 
-  // Helper: Convert Data URL to Blob
+  // ------ Helper Function: Data URL to Blob ------
   function dataURLtoBlob(dataurl) {
     const arr = dataurl.split(',');
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -146,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return new Blob([u8arr], { type: mime });
   }
 
-  // Update times on page every minute (single instance)
+  // ------ Periodic Update of Timestamps ------
   setInterval(() => {
     document.querySelectorAll(".post-time").forEach(elem => {
       const t = elem.getAttribute("data-time");
@@ -158,7 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }, 60000);
 
-  // Create new post with a 750-character limit using local timestamp for UI display
+  // ------ Create New Post ------
   async function createPost(content, imageDataUrl) {
     if (content.length > 750) {
       alert("Your post cannot exceed 750 characters.");
@@ -186,10 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       imageUrl = publicUrlData.publicUrl;
     }
-    // Generate a local timestamp for immediate UI display (we do not override the server timestamp)
     const localTime = new Date().toISOString();
-    
-    // Insert post and request returned data with .select('*')
     const { data, error } = await supabase
       .from('Posts')
       .insert([{ content, image_url: imageUrl, user_id: userId }])
@@ -199,8 +198,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error("Error saving post:", error ? error.message : "No data returned");
       return;
     }
-    
-    // Use currentUser as a fallback if the inserted record doesn't include joined Users data
     const newPostData = { 
       ...data, 
       created_at: localTime, 
@@ -210,28 +207,79 @@ document.addEventListener('DOMContentLoaded', async () => {
     postsContainer.prepend(newPostElement);
   }
 
-  // Fetch posts and their comments from server
+  // ------ Lazy Loading: Fetch Posts ------
   async function fetchPosts() {
+    if (allPostsLoaded) return;
     const { data, error } = await supabase
       .from('Posts')
-      .select(`
-        id, content, image_url, created_at, user_id,
-        Users (username, profile_image)
-      `)
-      .order('created_at', { ascending: false });
+      .select(`id, content, image_url, created_at, user_id, Users (username, profile_image)`)
+      .order('created_at', { ascending: false })
+      .range(postOffset, postOffset + postLimit - 1);
     if (error) {
       console.error("Error fetching posts:", error.message);
       return;
     }
-    postsContainer.innerHTML = "";
-    for (const post of data) {
+    if (data.length < postLimit) {
+      allPostsLoaded = true;
+    }
+    postOffset += data.length;
+    data.forEach(post => {
       const postElement = createPostElement(post);
+      // Initialize lazy loading for comments for this post:
+      postElement.dataset.commentsOffset = "0";
+      postElement.dataset.commentsLimit = "3";
       postsContainer.appendChild(postElement);
-      await fetchComments(post.id, postElement);
+    });
+  }
+
+  // Scroll listener: Load more posts when near the bottom
+  postsContainer.addEventListener('scroll', () => {
+    if (postsContainer.scrollTop + postsContainer.clientHeight >= postsContainer.scrollHeight - 100) {
+      fetchPosts();
+    }
+  });
+
+  // ------ Lazy Loading: Fetch Comments for a Post ------
+  async function fetchComments(postId, postElement, append = false) {
+    const commentsOffset = parseInt(postElement.dataset.commentsOffset);
+    const commentsLimit = parseInt(postElement.dataset.commentsLimit);
+    const { data, error } = await supabase
+      .from('Comments')
+      .select(`id, comment_text, created_at, user_id, Users (username, profile_image)`)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false })
+      .range(commentsOffset, commentsOffset + commentsLimit - 1);
+    if (error) {
+      console.error("Error fetching comments:", error.message);
+      return;
+    }
+    const commentsContainer = postElement.querySelector('.comments-container');
+    if (!append) {
+      commentsContainer.innerHTML = "";
+    }
+    data.forEach(comment => {
+      addCommentToDOM(comment, commentsContainer);
+    });
+    // Update offset for subsequent loads
+    postElement.dataset.commentsOffset = (commentsOffset + data.length).toString();
+
+    // If the number of comments equals the batch limit, enable a "Load More Comments" button.
+    if (data.length === commentsLimit) {
+      if (!postElement.querySelector('.load-more-comments-btn')) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.className = 'load-more-comments-btn';
+        loadMoreBtn.textContent = "Load More Comments";
+        loadMoreBtn.addEventListener('click', () => fetchComments(postId, postElement, true));
+        postElement.querySelector('.comments-section').appendChild(loadMoreBtn);
+      }
+    } else {
+      // Remove the button if no more comments are available.
+      const loadMoreBtn = postElement.querySelector('.load-more-comments-btn');
+      if (loadMoreBtn) loadMoreBtn.remove();
     }
   }
 
-  // Create a DOM element for a post with time displayed next to the username
+  // ------ Create a DOM Element for a Post ------
   function createPostElement(post) {
     const postArticle = document.createElement('article');
     postArticle.className = 'post';
@@ -243,19 +291,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const username = postUser.username || "Unknown User";
     const formattedTime = formatLiveTime(post.created_at);
 
-    // Time is displayed next to the username in the same line
+    // Only show the options button if the authenticated user is the author.
+    const optionsButton = (post.user_id === userId) 
+      ? `<div class="post-options-container"><button class="post-options">▼</button></div>`
+      : '';
+
     postArticle.innerHTML = `
       <div class="post-author">
         <img src="${userProfileImage}" alt="Author">
         <span class="post-username">@${username}</span>
         <span class="post-time" data-time="${post.created_at}">${formattedTime}</span>
+        ${optionsButton}
       </div>
       <div class="post-content">
         ${post.content ? `<p>${post.content}</p>` : ''}
         ${post.image_url ? `<img src="${post.image_url}" alt="Post Image">` : ''}
       </div>
       <button class="toggle-comments-btn">Show Comments</button>
-      <div class="comments-section">
+      <div class="comments-section" style="display: none;">
         <div class="comments-container"></div>
         <div class="comment-input">
           <textarea placeholder="Add a comment..." rows="2"></textarea>
@@ -263,11 +316,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
     `;
+
     setupPostInteractions(postArticle, post.id);
+
+    if (post.user_id === userId) {
+      const optionsBtn = postArticle.querySelector('.post-options');
+      optionsBtn.addEventListener('click', () => openPostOptionsPopup(post, postArticle));
+    }
     return postArticle;
   }
 
-  // Set up comment toggle and submission for a post element
+  // ------ Set Up Post Interactions (Toggle Comments & Comment Submission) ------
   function setupPostInteractions(postElement, postId) {
     const toggleBtn = postElement.querySelector('.toggle-comments-btn');
     const commentsSection = postElement.querySelector('.comments-section');
@@ -276,6 +335,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
           commentsSection.style.display = 'block';
           toggleBtn.textContent = 'Hide Comments';
+          // Load initial comments if not already loaded
+          if (postElement.dataset.commentsOffset === "0") {
+            fetchComments(postId, postElement);
+          }
         } else {
           commentsSection.style.display = 'none';
           toggleBtn.textContent = 'Show Comments';
@@ -306,7 +369,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Insert a new comment and display it immediately using local timestamp for UI display
+  // ------ Create and Insert a New Comment ------
   async function createComment(postId, commentText, commentsContainer) {
     const localTime = new Date().toISOString();
     const { data, error } = await supabase
@@ -318,7 +381,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error("Error saving comment:", error.message);
       return;
     }
-    // Use localTime for immediate display and fall back to currentUser if no Users data returned
     const commentForDisplay = { ...data, created_at: localTime, Users: data.Users ? data.Users : currentUser };
     addCommentToDOM(commentForDisplay, commentsContainer);
 
@@ -332,28 +394,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Fetch comments for a given post from server
-  async function fetchComments(postId, postElement) {
-    const { data, error } = await supabase
-      .from('Comments')
-      .select(`
-        id, comment_text, created_at, user_id,
-        Users (username, profile_image)
-      `)
-      .eq('post_id', postId)
-      .order('created_at', { ascending: false });
-    if (error) {
-      console.error("Error fetching comments:", error.message);
-      return;
-    }
-    const commentsContainer = postElement.querySelector('.comments-container');
-    commentsContainer.innerHTML = "";
-    data.forEach(comment => {
-      addCommentToDOM(comment, commentsContainer);
-    });
-  }
-
-  // Add comment to DOM with time displayed next to the username
+  // ------ Add Comment to the DOM ------
+  // Markup: a header (username & time) and the comment text directly below.
   function addCommentToDOM(comment, container) {
     const commenterImage = comment.Users?.profile_image || currentUser.profile_image || "Assets/Images/default-logo.jpg";
     const commenterUsername = comment.Users?.username || currentUser.username || "Unknown User";
@@ -363,11 +405,103 @@ document.addEventListener('DOMContentLoaded', async () => {
     commentDiv.innerHTML = `
       <img src="${commenterImage}" alt="Commenter">
       <div class="comment-body">
-        <span class="comment-username">@${commenterUsername}</span>
-        <span class="comment-time" data-time="${comment.created_at}">${formattedTime}</span>
-        <p class="comment-text">${comment.comment_text}</p>
+        <div class="comment-header">
+          <span class="comment-username">@${commenterUsername}</span>
+          <span class="comment-time" data-time="${comment.created_at}">${formattedTime}</span>
+        </div>
+        <div class="comment-text">${comment.comment_text}</div>
       </div>
     `;
     container.insertBefore(commentDiv, container.firstChild);
   }
+
+  // ------ Post Options Popup (Edit & Delete) ------
+  function openPostOptionsPopup(post, postElement) {
+    const overlay = document.createElement('div');
+    overlay.className = 'post-options-popup';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '2000';
+
+    const confirmMessageHTML = `<p class="delete-confirmation" style="display:none; margin-top:10px; color: red;">Are you sure you want to delete this post?</p>`;
+
+    overlay.innerHTML = `
+      <div class="popup-content" style="background: #333; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
+        <textarea id="popupEditText" style="width: 100%; height: 100px; margin-bottom: 10px;">${post.content}</textarea>
+        <div style="display: flex; justify-content: space-between;">
+          <button id="editPostBtn">Edit</button>
+          <button id="deletePostBtn">Delete</button>
+        </div>
+        ${confirmMessageHTML}
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    let deleteConfirmed = false;
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+      }
+    });
+
+    overlay.querySelector('#editPostBtn').addEventListener('click', async () => {
+      const newContent = overlay.querySelector('#popupEditText').value.trim();
+      if (newContent === "") {
+        alert("Post content cannot be empty.");
+        return;
+      }
+      const { error } = await supabase
+        .from('Posts')
+        .update({ content: newContent })
+        .eq('id', post.id);
+      if (error) {
+        alert("Error updating post: " + error.message);
+        return;
+      }
+      const contentElem = postElement.querySelector('.post-content p');
+      if (contentElem) {
+        contentElem.textContent = newContent;
+      }
+      document.body.removeChild(overlay);
+    });
+
+    const deleteBtn = overlay.querySelector('#deletePostBtn');
+    const confirmMsg = overlay.querySelector('.delete-confirmation');
+    deleteBtn.addEventListener('click', async () => {
+      if (!deleteConfirmed) {
+        confirmMsg.style.display = 'block';
+        deleteBtn.classList.add('confirm-delete');
+        deleteConfirmed = true;
+      } else {
+        await supabase.from('Comments').delete().eq('post_id', post.id);
+        const { error } = await supabase.from('Posts').delete().eq('id', post.id);
+        if (error) {
+          alert("Error deleting post: " + error.message);
+          return;
+        }
+        if (post.image_url) {
+          const segments = post.image_url.split('/');
+          const fileName = segments.pop().split('?')[0];
+          const { error: removeError } = await supabase.storage.from('post-images').remove([fileName]);
+          if (removeError) {
+            console.error("Error removing post image:", removeError.message);
+          }
+        }
+        postElement.remove();
+        document.body.removeChild(overlay);
+      }
+    });
+  }
+  // ------ End Post Options Popup ------
+
+  // ------ Initial Fetch of Posts ------
+  fetchPosts();
 });
