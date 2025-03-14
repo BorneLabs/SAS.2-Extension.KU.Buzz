@@ -178,6 +178,11 @@ html, body {
   padding: 0 15px;
 }
 
+/* Right-align the options button */
+.post-options-container {
+  margin-left: auto;
+}
+
 /* Post Author Image */
 .post-author img {
   width: var(--post-author-profile-size);
@@ -212,12 +217,12 @@ html, body {
   padding: 0 15px;
 }
 
-/* Updated Post Images: occupy 98% of container width and adjust height by aspect ratio */
+/* Updated Post Images */
 .post-content img {
   width: 98%;
   height: auto;
-  max-height: 400px; /* Maximum height; adjust this value as needed */
-  object-fit: cover; /* Crop image to fill the container */
+  max-height: 400px;
+  object-fit: cover;
   border-radius: 10px;
   margin: 0 auto 10px;
   display: block;
@@ -238,7 +243,6 @@ html, body {
 .comments-section {
   order: 4 !important;
   margin: 0 15px;
-  background-color: var(--bg-color);
   border: 1px solid var(--font-color);
   padding: 10px;
   border-radius: 8px;
@@ -262,12 +266,19 @@ html, body {
   object-fit: cover;
 }
 
-/* Comment Body: Username and Time inline */
+/* Updated Comment Body: Stack header and text */
 .comment-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+/* Comment Header: Username and Time inline */
+.comment-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 /* Comment Username */
@@ -280,21 +291,21 @@ html, body {
   display: inline-block;
 }
 
-/* Comment Time (next to username) */
+/* Comment Time */
 .comment-time {
   font-size: 0.8em;
   color: #bbb;
   display: inline-block;
 }
 
-/* Comment Text (below username and time) */
+/* Comment Text */
 .comment-text {
   background-color: #03233a;
   padding: 8px;
   border-radius: 8px;
   font-size: 0.9em;
   width: 100%;
-  margin-top: 4px;
+  /* Removed margin-top to reduce extra space */
 }
 
 /* Comments Container */
@@ -302,8 +313,7 @@ html, body {
   max-height: 200px;
   overflow-y: auto;
   margin-bottom: 10px;
-  background-color: #03233a
-
+  background-color: #03233a;
 }
 
 /* Comment Input */
@@ -382,8 +392,8 @@ html, body {
 
 .popup-image-preview img {
   width: 100%;
-  max-height: 300px; /* Maximum height for popup preview images */
-  object-fit: cover;  /* Ensures the image is cropped if it exceeds max-height */
+  max-height: 300px;
+  object-fit: cover;
   border-radius: 10px;
   display: block;
   margin: 0 auto;
@@ -698,19 +708,17 @@ button {
 }
 
 /* Media Query for Larger Screens */
-/* Limit the container width on desktops and laptops to mimic a mobile layout */
 @media screen and (min-width: 768px) {
   .container {
     max-width: 600px;
     margin: 0 auto;
   }
-  /* Ensure posts column respects the container width */
   .posts-column {
     width: 100%;
   }
 }
 
-/* Existing Media Query for smaller screens */
+/* Media Query for smaller screens */
 @media screen and (max-width: 768px) {
   .posts-header {
     flex-wrap: nowrap;
@@ -720,19 +728,92 @@ button {
   }
 }
 
+/* Style for the post options (▼) button */
+.post-options {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* When deletion is confirmed, change delete button text color to red */
+.confirm-delete {
+  color: red !important;
+}
+
+/* Post Options Popup Styles */
+.post-options-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.post-options-popup .popup-content {
+  background: #333;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.post-options-popup textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+  border: 1px solid var(--font-color);
+  border-radius: 4px;
+  background-color: #032945;
+  color: var(--font-color);
+  padding: 10px;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.post-options-popup button {
+  padding: 10px 20px;
+  border: 1px solid var(--font-color);
+  background-color: transparent;
+  color: var(--font-color);
+  cursor: pointer;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.post-options-popup button:hover {
+  background-color: var(--button-color);
+}
+
+.post-options-popup .delete-confirmation {
+  font-size: 0.9em;
+  color: red;
+  text-align: center;
+}
 
 /* Custom Scrollbar Styles for Webkit Browsers */
 ::-webkit-scrollbar {
-  width: 6px; /* Reduced scrollbar width */
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-color); /* Use site background color */
+  background: var(--bg-color);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--button-color); /* Use button color */
+  background: var(--button-color);
   border-radius: 3px;
 }
 
