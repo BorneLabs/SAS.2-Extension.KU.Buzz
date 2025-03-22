@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Account</title>
+  <link rel="icon" type="image/x-icon" href="./assets/images/logo.png">
+  <title>Account - KU.Buzz</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
   <button class="back-btn" id="backBtn">Back</button>
   <div class="container">
     <div class="account-container">
       <div class="profile-image-container">
-        <!-- Default profile image -->
-        <img id="currentProfileImage" src="Assets/Images/default-logo.jpg" alt="Profile Image">
+        <img id="currentProfileImage" src="assets/images/default-logo.jpg" alt="Profile Image">
       </div>
       <div class="username-display" id="currentUsername">Current Username</div>
       <button class="change-btn" id="changeBtn">Change</button>
     </div>
   </div>
 
-  <!-- Popup for updating profile -->
+
   <div class="account-popup" id="accountPopup">
     <h2>Update Profile</h2>
     <img id="popupPreviewImage" src="" alt="Image Preview">
@@ -31,6 +31,6 @@
     <input type="text" id="newUsername" placeholder="New Username">
     <button class="ok-btn" id="okBtn">OK</button>
   </div>
-  <script type="module" src="account.js"></script>
+  <script type="module" src="./assets/js/account.js"></script>
 </body>
 </html>

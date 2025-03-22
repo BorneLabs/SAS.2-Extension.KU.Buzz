@@ -1,7 +1,6 @@
 import supabase from "./supabase-config.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // ------ Authentication and User Fetch ------
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     alert("No authenticated user.");
@@ -21,24 +20,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   const currentUser = userRecord;
   
-  // Set default if needed
   const defaultProfileImage = "Assets/Images/default-logo.jpg";
   const profileImage = currentUser.profile_image || defaultProfileImage;
   const username = currentUser.username || "Current Username";
 
-  // Update DOM with current user's info
   const currentProfileImageElem = document.getElementById('currentProfileImage');
   const currentUsernameElem = document.getElementById('currentUsername');
   currentProfileImageElem.src = profileImage;
   currentUsernameElem.textContent = username;
 
-  // ------ Back Button ------
   const backBtn = document.getElementById('backBtn');
   backBtn.addEventListener('click', () => {
     window.location.href = "home.html";
   });
 
-  // ------ Popup Elements and Change Button ------
   const changeBtn = document.getElementById('changeBtn');
   const accountPopup = document.getElementById('accountPopup');
   const okBtn = document.getElementById('okBtn');
@@ -46,7 +41,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const newUsernameInput = document.getElementById('newUsername');
   const popupPreviewImage = document.getElementById('popupPreviewImage');
 
-  // Show popup when "Change" is clicked.
   changeBtn.addEventListener('click', () => {
     if (changeBtn.textContent.trim() === "Save") {
       window.location.href = "home.html";
@@ -55,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Preview the new profile image on selection.
   newProfileImageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) {
@@ -71,14 +64,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     reader.readAsDataURL(file);
   });
 
-  // ------ Update Profile on OK Button Click ------
   okBtn.addEventListener('click', async () => {
     let updatedProfileImage = currentUser.profile_image || defaultProfileImage;
     let updatedUsername = currentUser.username || "Current Username";
     const file = newProfileImageInput.files[0];
 
     if (file) {
-      // If the current user's profile image is not the default and comes from our storage, delete it.
       if (currentUser.profile_image && currentUser.profile_image !== defaultProfileImage && currentUser.profile_image.includes('/profile-images/')) {
         const parts = currentUser.profile_image.split('/profile-images/');
         if (parts.length === 2) {
@@ -86,7 +77,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           await supabase.storage.from('profile-images').remove([filePath]);
         }
       }
-      // Upload the new profile image to Supabase Storage.
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-images')
         .upload(`public/${Date.now()}_${file.name}`, file);
@@ -99,12 +89,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         .getPublicUrl(uploadData.path);
       updatedProfileImage = publicURLData.publicUrl;
     }
-    // If a new username is entered, update it.
     if (newUsernameInput.value.trim() !== "") {
       updatedUsername = newUsernameInput.value.trim();
     }
 
-    // Update the Users table with the new info.
     const { error: updateError } = await supabase
       .from('Users')
       .update({ username: updatedUsername, profile_image: updatedProfileImage })
@@ -114,11 +102,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Update the DOM with the new info.
     currentProfileImageElem.src = updatedProfileImage;
     currentUsernameElem.textContent = updatedUsername;
 
-    // Hide the popup and reset its inputs.
     accountPopup.style.display = 'none';
     newProfileImageInput.value = "";
     newUsernameInput.value = "";

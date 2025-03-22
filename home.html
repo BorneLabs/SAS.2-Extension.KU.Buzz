@@ -3,20 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/x-icon" href="./assets/images/logo.png">
+
   <title>KU.Buzz</title>
-  <!-- Load Supabase JS via CDN before your module script -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
   <div class="container">
-    <!-- Posts Column -->
     <div class="posts-column">
-      <!-- Responsive Header -->
       <header class="posts-header">
         <div class="header-left">
           <button class="profile-btn" onclick="location.href='account.html'">
-            <img src="Assets/Images/default-logo.jpg" alt="Profile">
+            <img src="assets/images/default-logo.jpg" alt="Profile">
           </button>
           <h1 class="header-title">KU.Buzz</h1>
         </div>
@@ -28,23 +27,18 @@
         </div>
       </header>
       
-      <!-- Posts Container -->
       <section class="posts-container" id="postsContainer">
-        <!-- Posts will be dynamically added here by home.js -->
       </section>
       
-      <!-- Floating New Post Button -->
       <button class="floating-post-btn" id="floatingPostBtn">New <br> Post</button>
     </div>
   </div>
   
-  <!-- New Post Popup (used for creating a post) -->
   <div class="new-post-popup" id="newPostPopup">
     <div class="new-post-content">
       <button class="popup-close-btn" id="popupCloseBtn">&times;</button>
       <h2>Create a Post</h2>
       <textarea id="popupPostText" placeholder="What's on your mind?" rows="4" maxlength="750"></textarea>
-      <!-- Character counter -->
       <div id="charCount">0/750</div>
       <div class="popup-image-preview" id="popupImagePreview"></div>
       <div class="popup-button-group">
@@ -57,6 +51,6 @@
     </div>
   </div>
   
-  <script type="module" src="./home.js"></script>
+  <script type="module" src="./assets/js/home.js"></script>
 </body>
 </html>

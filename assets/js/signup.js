@@ -12,13 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
 
-    // Validate that all fields are filled out
     if (!firstName || !lastName || !username || !email || !password || !confirmPassword) {
       errorMessage.textContent = "Please fill out all fields.";
       errorMessage.style.display = "block";
       return;
     }
-    // Validate that passwords match
     if (password !== confirmPassword) {
       errorMessage.textContent = "Passwords do not match.";
       errorMessage.style.display = "block";
@@ -27,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let authUserId = null;
     try {
-      // Try signing up the user using Supabase Auth.
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -61,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Authenticated user id from sign up:", authUserId);
       }
 
-      // Check if a user record exists in the Users table by email.
       let { data: existingUser } = await supabase
         .from('Users')
         .select('*')
@@ -77,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // If no record exists, insert a new record into the Users table.
       if (!existingUser) {
         console.log("Inserting new user record with id:", authUserId);
         const { error: insertError } = await supabase

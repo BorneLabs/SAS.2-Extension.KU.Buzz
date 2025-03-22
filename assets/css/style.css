@@ -1,14 +1,12 @@
-/* Root Variables */
 :root {
   --bg-color: #032945;
   --button-color: #031b2c;
   --font-color: #F5F7FB;
   --header-profile-size: 50px;
-  --post-author-profile-size: 33px; /* 1/3 smaller than header */
-  --comment-profile-size: 25px; /* half of header size */
+  --post-author-profile-size: 33px;
+  --comment-profile-size: 25px;
 }
 
-/* General Styles */
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +22,6 @@ html, body {
   color: var(--font-color);
 }
 
-/* Container */
 .container {
   width: 100%;
   height: 100%;
@@ -33,7 +30,6 @@ html, body {
   align-items: center;
 }
 
-/* Posts Column */
 .posts-column {
   width: 100vw;
   height: 100vh;
@@ -45,7 +41,6 @@ html, body {
   flex-direction: column;
 }
 
-/* Header Section - Reduced height */
 .posts-header {
   position: fixed;
   top: 0;
@@ -61,7 +56,6 @@ html, body {
   z-index: 1000;
 }
 
-/* Header Left */
 .header-left {
   display: flex;
   align-items: center;
@@ -70,7 +64,6 @@ html, body {
   min-width: 0;
 }
 
-/* Header Title */
 .header-title {
   color: var(--font-color);
   font-size: 1.8em;
@@ -81,12 +74,10 @@ html, body {
   min-width: 0;
 }
 
-/* Header Right */
 .header-right {
   flex-shrink: 0;
 }
 
-/* Profile Button in Header */
 .profile-btn {
   width: var(--header-profile-size);
   height: var(--header-profile-size);
@@ -107,7 +98,6 @@ html, body {
   border-radius: 50%;
 }
 
-/* Search Container */
 .search-container {
   display: flex;
   align-items: center;
@@ -149,14 +139,12 @@ html, body {
   display: block;
 }
 
-/* Posts Container - add padding-top so posts scroll behind header */
 .posts-container {
-  padding-top: 70px; /* Adjust to match header height */
+  padding-top: 70px;
   flex-grow: 1;
   overflow-y: auto;
 }
 
-/* Post Styles */
 .post {
   width: 100% !important;
   margin: 0 !important;
@@ -169,7 +157,6 @@ html, body {
   gap: 10px;
 }
 
-/* Post Author */
 .post-author {
   order: 1 !important;
   display: flex;
@@ -178,12 +165,10 @@ html, body {
   padding: 0 15px;
 }
 
-/* Right-align the options button */
 .post-options-container {
   margin-left: auto;
 }
 
-/* Post Author Image */
 .post-author img {
   width: var(--post-author-profile-size);
   height: var(--post-author-profile-size);
@@ -191,7 +176,6 @@ html, body {
   object-fit: cover;
 }
 
-/* Post Username and Time - displayed inline */
 .post-username {
   font-size: 1em;
   color: var(--font-color);
@@ -208,7 +192,6 @@ html, body {
   display: inline-block;
 }
 
-/* Post Content */
 .post-content {
   order: 2 !important;
   display: flex;
@@ -217,7 +200,6 @@ html, body {
   padding: 0 15px;
 }
 
-/* Updated Post Images */
 .post-content img {
   width: 98%;
   height: auto;
@@ -228,7 +210,6 @@ html, body {
   display: block;
 }
 
-/* Toggle Comments Button */
 .toggle-comments-btn {
   order: 3 !important;
   align-self: flex-start;
@@ -239,7 +220,6 @@ html, body {
   text-decoration: underline !important;
 }
 
-/* Comments Section */
 .comments-section {
   order: 4 !important;
   margin: 0 15px;
@@ -250,7 +230,6 @@ html, body {
   background-color: #03233a;
 }
 
-/* Comment Elements */
 .comment {
   display: flex;
   align-items: flex-start;
@@ -258,7 +237,6 @@ html, body {
   margin-bottom: 10px;
 }
 
-/* Comment Image */
 .comment img {
   width: var(--comment-profile-size);
   height: var(--comment-profile-size);
@@ -266,7 +244,6 @@ html, body {
   object-fit: cover;
 }
 
-/* Updated Comment Body: Stack header and text */
 .comment-body {
   display: flex;
   flex-direction: column;
@@ -274,14 +251,12 @@ html, body {
   width: 100%;
 }
 
-/* Comment Header: Username and Time inline */
 .comment-header {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Comment Username */
 .comment-username {
   font-size: 0.9em;
   background-color: #333;
@@ -291,24 +266,20 @@ html, body {
   display: inline-block;
 }
 
-/* Comment Time */
 .comment-time {
   font-size: 0.8em;
   color: #bbb;
   display: inline-block;
 }
 
-/* Comment Text */
 .comment-text {
   background-color: #03233a;
   padding: 8px;
   border-radius: 8px;
   font-size: 0.9em;
   width: 100%;
-  /* Removed margin-top to reduce extra space */
 }
 
-/* Comments Container */
 .comments-container {
   max-height: 200px;
   overflow-y: auto;
@@ -316,7 +287,6 @@ html, body {
   background-color: #03233a;
 }
 
-/* Comment Input */
 .comment-input {
   display: flex;
   gap: 10px;
@@ -344,7 +314,6 @@ html, body {
   cursor: pointer;
 }
 
-/* New Post Popup */
 .new-post-popup {
   position: fixed;
   top: 50%;
@@ -384,7 +353,6 @@ html, body {
   margin: 5px 10px 10px;
 }
 
-/* Popup Image Preview */
 .popup-image-preview {
   margin-bottom: 10px;
   display: none;
@@ -399,14 +367,12 @@ html, body {
   margin: 0 auto;
 }
 
-/* Popup Button Group */
 .popup-button-group {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-/* Upload Button */
 .upload-btn {
   background-color: #333;
   color: var(--font-color);
@@ -420,7 +386,6 @@ html, body {
   display: none;
 }
 
-/* Post Button */
 .post-btn {
   background-color: var(--button-color);
   color: var(--bg-color);
@@ -430,7 +395,6 @@ html, body {
   cursor: pointer;
 }
 
-/* Global Button Styles */
 button {
   color: var(--font-color) !important;
   font-weight: bold !important;
@@ -438,12 +402,10 @@ button {
   background-color: transparent !important;
 }
 
-/* Override for Profile and Popup Close Buttons */
 .profile-btn, .popup-close-btn {
   border: none !important;
 }
 
-/* Popup Close Button */
 .popup-close-btn {
   position: absolute;
   top: 10px;
@@ -455,7 +417,6 @@ button {
   color: var(--font-color);
 }
 
-/* Floating New Post Button */
 .floating-post-btn {
   position: fixed;
   bottom: 20px;
@@ -477,7 +438,6 @@ button {
   background-color: var(--button-color);
 }
 
-/* Login Page Specific Styles */
 .login-container {
   width: 90vw;
   max-width: 400px;
@@ -519,7 +479,6 @@ button {
   display: none;
 }
 
-/* Sign Up Page Specific Styles */
 .signup-container {
   width: 90vw;
   max-width: 400px;
@@ -553,7 +512,6 @@ button {
   color: var(--font-color);
 }
 
-/* Account Page Specific Styles */
 .account-container {
   width: 80vw;
   max-width: 600px;
@@ -614,7 +572,6 @@ button {
   color: var(--font-color);
 }
 
-/* Account Popup Styles */
 .account-popup {
   position: fixed;
   top: 50%;
@@ -678,7 +635,6 @@ button {
   color: var(--font-color);
 }
 
-/* Success Registration Page Specific Styles */
 .message-container {
   text-align: center;
   padding: 20px;
@@ -707,7 +663,6 @@ button {
   font-size: 1em;
 }
 
-/* Media Query for Larger Screens */
 @media screen and (min-width: 768px) {
   .container {
     max-width: 600px;
@@ -718,7 +673,6 @@ button {
   }
 }
 
-/* Media Query for smaller screens */
 @media screen and (max-width: 768px) {
   .posts-header {
     flex-wrap: nowrap;
@@ -728,7 +682,6 @@ button {
   }
 }
 
-/* Style for the post options (▼) button */
 .post-options {
   border-radius: 50%;
   width: 30px;
@@ -742,12 +695,10 @@ button {
   font-size: 16px;
 }
 
-/* When deletion is confirmed, change delete button text color to red */
 .confirm-delete {
   color: red !important;
 }
 
-/* Post Options Popup Styles */
 .post-options-popup {
   position: fixed;
   top: 0;
@@ -802,7 +753,6 @@ button {
   text-align: center;
 }
 
-/* Custom Scrollbar Styles for Webkit Browsers */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -821,7 +771,6 @@ button {
   background: var(--button-color);
 }
 
-/* Firefox Scrollbar Styling */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--button-color) var(--bg-color);

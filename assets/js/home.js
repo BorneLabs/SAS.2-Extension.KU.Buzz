@@ -2,16 +2,12 @@ import { parseTimestamp, formatLiveTime } from "./time-utils.js";
 import supabase from "./supabase-config.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // ------ Authentication Guard ------
-  // Get authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user ? user.id : null;
   if (!userId) {
     window.location.href = "index.html";
     return;
   }
-
-  // Retrieve user record from the Users table
   const { data: userRecord } = await supabase
     .from('Users')
     .select('*')
@@ -23,25 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   const currentUser = userRecord;
-
-  // ------ Update Header Profile Image ------
-  // Instead of using localStorage, use the current user's profile_image.
-  // If none is set, use the default.
   const profileBtnImg = document.querySelector('.profile-btn img');
   if (profileBtnImg) {
     const currentProfileImage = currentUser.profile_image || "Assets/Images/default-logo.jpg";
     profileBtnImg.src = currentProfileImage + '?v=' + new Date().getTime();
   }
-
-  // ------ Lazy Loading Variables for Posts ------
   let postLimit = 10;
   let postOffset = 0;
   let allPostsLoaded = false;
-
-  // ------ Other Global Variables ------
-  let isPosting = false; // Prevent duplicate submissions
-
-  // ------ DOM Elements ------
+  let isPosting = false;
   const postsContainer = document.getElementById('postsContainer');
   const floatingPostBtn = document.getElementById('floatingPostBtn');
   const newPostPopup = document.getElementById('newPostPopup');
@@ -51,21 +37,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const popupImagePreview = document.getElementById('popupImagePreview');
   const popupPostBtn = document.getElementById('popupPostBtn');
   const charCount = document.getElementById('charCount');
-
   let popupCurrentImage = null;
-
-  // ------ New Post Popup: Character Counter & Events ------
   popupPostText.addEventListener('input', () => {
     const length = popupPostText.value.length;
     charCount.textContent = `${length}/750`;
   });
-
   if (floatingPostBtn) {
     floatingPostBtn.addEventListener('click', () => {
       newPostPopup.style.display = 'block';
     });
   }
-
   function closePopup() {
     popupPostText.value = '';
     charCount.textContent = '0/750';
@@ -78,11 +59,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     popupPostBtn.disabled = false;
     isPosting = false;
   }
-
   if (popupCloseBtn) {
     popupCloseBtn.addEventListener('click', closePopup);
   }
-
   if (popupImageUpload) {
     popupImageUpload.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -97,7 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       reader.readAsDataURL(file);
     });
   }
-
   async function handlePostSubmission() {
     if (isPosting) return;
     isPosting = true;
@@ -105,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await createPost(popupPostText.value.trim(), popupCurrentImage);
     closePopup();
   }
-
   if (popupPostBtn) {
     popupPostBtn.addEventListener('click', handlePostSubmission);
   }
@@ -117,8 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-
-  // ------ Real-Time Comment Subscription ------
   const commentSubscription = supabase
     .channel('comments')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Comments' }, (payload) => {
@@ -126,7 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const postElement = document.querySelector(`article[data-post-id="${newComment.post_id}"]`);
       if (postElement) {
         const commentsContainer = postElement.querySelector('.comments-container');
-        // Fallback if Users data is missing
         if (!newComment.Users) {
           newComment.Users = { username: currentUser.username, profile_image: currentUser.profile_image };
         }
@@ -134,8 +108,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     })
     .subscribe();
-
-  // ------ Helper Function: Data URL to Blob ------
   function dataURLtoBlob(dataurl) {
     const arr = dataurl.split(',');
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -147,8 +119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     return new Blob([u8arr], { type: mime });
   }
-
-  // ------ Periodic Update of Timestamps ------
   setInterval(() => {
     document.querySelectorAll(".post-time").forEach(elem => {
       const t = elem.getAttribute("data-time");
@@ -159,8 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       elem.textContent = formatLiveTime(t);
     });
   }, 60000);
-
-  // ------ Create New Post ------
   async function createPost(content, imageDataUrl) {
     if (content.length > 750) {
       alert("Your post cannot exceed 750 characters.");
@@ -206,8 +174,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const newPostElement = createPostElement(newPostData);
     postsContainer.prepend(newPostElement);
   }
-
-  // ------ Lazy Loading: Fetch Posts ------
   async function fetchPosts() {
     if (allPostsLoaded) return;
     const { data, error } = await supabase
@@ -225,21 +191,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     postOffset += data.length;
     data.forEach(post => {
       const postElement = createPostElement(post);
-      // Initialize lazy loading for comments for this post:
       postElement.dataset.commentsOffset = "0";
       postElement.dataset.commentsLimit = "3";
       postsContainer.appendChild(postElement);
     });
   }
-
-  // Scroll listener: Load more posts when near the bottom
   postsContainer.addEventListener('scroll', () => {
     if (postsContainer.scrollTop + postsContainer.clientHeight >= postsContainer.scrollHeight - 100) {
       fetchPosts();
     }
   });
-
-  // ------ Lazy Loading: Fetch Comments for a Post ------
   async function fetchComments(postId, postElement, append = false) {
     const commentsOffset = parseInt(postElement.dataset.commentsOffset);
     const commentsLimit = parseInt(postElement.dataset.commentsLimit);
@@ -260,10 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     data.forEach(comment => {
       addCommentToDOM(comment, commentsContainer);
     });
-    // Update offset for subsequent loads
     postElement.dataset.commentsOffset = (commentsOffset + data.length).toString();
-
-    // If the number of comments equals the batch limit, enable a "Load More Comments" button.
     if (data.length === commentsLimit) {
       if (!postElement.querySelector('.load-more-comments-btn')) {
         const loadMoreBtn = document.createElement('button');
@@ -273,29 +231,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         postElement.querySelector('.comments-section').appendChild(loadMoreBtn);
       }
     } else {
-      // Remove the button if no more comments are available.
       const loadMoreBtn = postElement.querySelector('.load-more-comments-btn');
       if (loadMoreBtn) loadMoreBtn.remove();
     }
   }
-
-  // ------ Create a DOM Element for a Post ------
   function createPostElement(post) {
     const postArticle = document.createElement('article');
     postArticle.className = 'post';
     postArticle.setAttribute('data-post-id', post.id);
-
-    // Use post.Users if available; otherwise, fall back to currentUser
     const postUser = post.Users || currentUser;
     const userProfileImage = postUser.profile_image || "Assets/Images/default-logo.jpg";
     const username = postUser.username || "Unknown User";
     const formattedTime = formatLiveTime(post.created_at);
-
-    // Only show the options button if the authenticated user is the author.
     const optionsButton = (post.user_id === userId) 
       ? `<div class="post-options-container"><button class="post-options">▼</button></div>`
       : '';
-
     postArticle.innerHTML = `
       <div class="post-author">
         <img src="${userProfileImage}" alt="Author">
@@ -316,17 +266,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
     `;
-
     setupPostInteractions(postArticle, post.id);
-
     if (post.user_id === userId) {
       const optionsBtn = postArticle.querySelector('.post-options');
       optionsBtn.addEventListener('click', () => openPostOptionsPopup(post, postArticle));
     }
     return postArticle;
   }
-
-  // ------ Set Up Post Interactions (Toggle Comments & Comment Submission) ------
   function setupPostInteractions(postElement, postId) {
     const toggleBtn = postElement.querySelector('.toggle-comments-btn');
     const commentsSection = postElement.querySelector('.comments-section');
@@ -335,7 +281,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (commentsSection.style.display === 'none' || commentsSection.style.display === '') {
           commentsSection.style.display = 'block';
           toggleBtn.textContent = 'Hide Comments';
-          // Load initial comments if not already loaded
           if (postElement.dataset.commentsOffset === "0") {
             fetchComments(postId, postElement);
           }
@@ -368,8 +313,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   }
-
-  // ------ Create and Insert a New Comment ------
   async function createComment(postId, commentText, commentsContainer) {
     const localTime = new Date().toISOString();
     const { data, error } = await supabase
@@ -383,7 +326,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const commentForDisplay = { ...data, created_at: localTime, Users: data.Users ? data.Users : currentUser };
     addCommentToDOM(commentForDisplay, commentsContainer);
-
     const commentsSection = commentsContainer.parentElement;
     if (!commentsSection || commentsSection.style.display === 'none') {
       commentsSection.style.display = 'block';
@@ -393,9 +335,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   }
-
-  // ------ Add Comment to the DOM ------
-  // Markup: a header (username & time) and the comment text directly below.
   function addCommentToDOM(comment, container) {
     const commenterImage = comment.Users?.profile_image || currentUser.profile_image || "Assets/Images/default-logo.jpg";
     const commenterUsername = comment.Users?.username || currentUser.username || "Unknown User";
@@ -414,8 +353,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
     container.insertBefore(commentDiv, container.firstChild);
   }
-
-  // ------ Post Options Popup (Edit & Delete) ------
   function openPostOptionsPopup(post, postElement) {
     const overlay = document.createElement('div');
     overlay.className = 'post-options-popup';
@@ -429,9 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     overlay.style.alignItems = 'center';
     overlay.style.justifyContent = 'center';
     overlay.style.zIndex = '2000';
-
     const confirmMessageHTML = `<p class="delete-confirmation" style="display:none; margin-top:10px; color: red;">Are you sure you want to delete this post?</p>`;
-
     overlay.innerHTML = `
       <div class="popup-content" style="background: #333; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
         <textarea id="popupEditText" style="width: 100%; height: 100px; margin-bottom: 10px;">${post.content}</textarea>
@@ -443,15 +378,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
     `;
     document.body.appendChild(overlay);
-
     let deleteConfirmed = false;
-
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
         document.body.removeChild(overlay);
       }
     });
-
     overlay.querySelector('#editPostBtn').addEventListener('click', async () => {
       const newContent = overlay.querySelector('#popupEditText').value.trim();
       if (newContent === "") {
@@ -472,7 +404,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       document.body.removeChild(overlay);
     });
-
     const deleteBtn = overlay.querySelector('#deletePostBtn');
     const confirmMsg = overlay.querySelector('.delete-confirmation');
     deleteBtn.addEventListener('click', async () => {
@@ -500,8 +431,5 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-  // ------ End Post Options Popup ------
-
-  // ------ Initial Fetch of Posts ------
   fetchPosts();
 });
