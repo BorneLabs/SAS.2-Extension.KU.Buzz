@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     data.forEach(post => {
       const postElement = createPostElement(post);
       postElement.dataset.commentsOffset = "0";
-      postElement.dataset.commentsLimit = "3";
+      postElement.dataset.commentsLimit = "4";
       postsContainer.appendChild(postElement);
     });
   }
@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     overlay.style.zIndex = '2000';
     const confirmMessageHTML = `<p class="delete-confirmation" style="display:none; margin-top:10px; color: red;">Are you sure you want to delete this post?</p>`;
     overlay.innerHTML = `
-      <div class="popup-content" style="background: #333; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
+      <div class="popup-content" style="background: #021624; padding: 20px; border: 2px solid #FDA505; border-radius: 8px; width: 90%; max-width: 400px;">
         <textarea id="popupEditText" style="width: 100%; height: 100px; margin-bottom: 10px;">${post.content}</textarea>
         <div style="display: flex; justify-content: space-between;">
           <button id="editPostBtn">Edit</button>

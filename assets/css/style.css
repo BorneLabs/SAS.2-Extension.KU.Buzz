@@ -1,5 +1,5 @@
 :root {
-  --bg-color: #032945;
+  --bg-color: #000000;
   --button-color: #031b2c;
   --font-color: #F5F7FB;
   --header-profile-size: 50px;
@@ -46,7 +46,7 @@ html, body {
   top: 0;
   left: 0;
   width: 100vw;
-  background-color: var(--button-color);
+  background-color: #000000;
   padding: 5px 10px;
   display: flex;
   align-items: center;
@@ -122,8 +122,9 @@ html, body {
 }
 
 .search-btn {
+  border-radius:5px ;
   background: transparent;
-  border: 1px solid var(--font-color);
+  border: 1px solid #FDA505;
   color: var(--font-color);
   font-size: 1em;
   cursor: pointer;
@@ -140,16 +141,20 @@ html, body {
 }
 
 .posts-container {
+  background-color: #021624;
   padding-top: 70px;
   flex-grow: 1;
   overflow-y: auto;
 }
 
 .post {
+  border: 2px solid #000000;
+  border-radius: 8px;
+  background-color:#032945;
   width: 100% !important;
-  margin: 0 !important;
+  margin: 2 !important;
   padding: 15px 0 !important;
-  border-top: 1px solid var(--font-color) !important;
+  border-top: 20px solid   #000000!important;
   border-bottom: none !important;
   box-shadow: none !important;
   display: flex !important;
@@ -178,8 +183,8 @@ html, body {
 
 .post-username {
   font-size: 1em;
-  color: var(--font-color);
-  background-color: #333;
+  color: #000000;
+  background-color:#FDA505;
   padding: 4px 8px;
   border-radius: 4px;
   display: inline-block;
@@ -193,7 +198,7 @@ html, body {
 }
 
 .post-content {
-  order: 2 !important;
+  order: 1 !important;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -216,18 +221,18 @@ html, body {
   margin: 0 15px;
   background: transparent !important;
   border: none !important;
-  color: var(--font-color) !important;
+  color: #FDA505 !important;
   text-decoration: underline !important;
 }
 
 .comments-section {
   order: 4 !important;
   margin: 0 15px;
-  border: 1px solid var(--font-color);
+  border: 1px solid #FDA505;
   padding: 10px;
   border-radius: 8px;
   display: none;
-  background-color: #03233a;
+  background-color: var(--bg-color);
 }
 
 .comment {
@@ -273,7 +278,7 @@ html, body {
 }
 
 .comment-text {
-  background-color: #03233a;
+  background-color: var(--bg-color);
   padding: 8px;
   border-radius: 8px;
   font-size: 0.9em;
@@ -284,7 +289,7 @@ html, body {
   max-height: 200px;
   overflow-y: auto;
   margin-bottom: 10px;
-  background-color: #03233a;
+  background-color: var(--bg-color);
 }
 
 .comment-input {
@@ -302,11 +307,11 @@ html, body {
   min-height: 40px;
   font-size: 0.9em;
   color: var(--font-color);
-  background-color: #03233a;
+  background-color: transparent;
 }
 
 .comment-btn {
-  background-color: #03233a;
+  background-color: transparent;
   color: var(--bg-color);
   border: none;
   border-radius: 4px;
@@ -321,8 +326,8 @@ html, body {
   transform: translate(-50%, -50%);
   width: 80%;
   max-width: 500px;
-  background-color: #333;
-  border: 2px solid #fff;
+  background-color: var(--bg-color);
+  border: 2px solid #FDA505;
   border-radius: 8px;
   display: none;
   padding: 20px;
@@ -343,7 +348,7 @@ html, body {
   resize: vertical;
   margin-bottom: 10px;
   color: var(--font-color);
-  background-color: #333;
+  background-color:transparent;
 }
 
 #charCount {
@@ -374,7 +379,7 @@ html, body {
 }
 
 .upload-btn {
-  background-color: #333;
+  background-color:transparent;
   color: var(--font-color);
   padding: 10px 15px;
   border: 1px solid var(--font-color);
@@ -399,7 +404,7 @@ button {
   color: var(--font-color) !important;
   font-weight: bold !important;
   border: 1px solid var(--font-color) !important;
-  background-color: transparent !important;
+  background-color: var(--bg-color) !important;
 }
 
 .profile-btn, .popup-close-btn {
@@ -418,12 +423,12 @@ button {
 }
 
 .floating-post-btn {
+  border: 2px solid #FDA505;
   position: fixed;
   bottom: 20px;
   right: 20px;
   background-color: var(--button-color);
   color: var(--bg-color);
-  border: none;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -579,7 +584,7 @@ button {
   transform: translate(-50%, -50%);
   width: 80%;
   max-width: 500px;
-  background-color: #333;
+  background-color: #021624;
   border: 2px solid #fff;
   border-radius: 8px;
   padding: 20px;
@@ -606,7 +611,7 @@ button {
   display: inline-block;
   padding: 10px 20px;
   margin: 15px auto;
-  background-color: #333;
+  background-color: #021624;
   border: 1px solid #fff;
   border-radius: 4px;
   cursor: pointer;
@@ -623,7 +628,7 @@ button {
   margin-bottom: 15px;
   border: 1px solid #fff;
   border-radius: 4px;
-  background-color: #333;
+  background-color:#021624;
   color: var(--font-color);
 }
 
@@ -689,7 +694,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: #021624;
   border: none;
   cursor: pointer;
   font-size: 16px;
@@ -705,7 +710,7 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #021624;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -713,7 +718,7 @@ button {
 }
 
 .post-options-popup .popup-content {
-  background: #333;
+  background:#021624;
   padding: 20px;
   border-radius: 8px;
   width: 90%;
@@ -726,7 +731,7 @@ button {
   margin-bottom: 10px;
   border: 1px solid var(--font-color);
   border-radius: 4px;
-  background-color: #032945;
+  background-color: #021624;
   color: var(--font-color);
   padding: 10px;
   font-family: monospace;
@@ -736,7 +741,7 @@ button {
 .post-options-popup button {
   padding: 10px 20px;
   border: 1px solid var(--font-color);
-  background-color: transparent;
+  background-color: #021624;
   color: var(--font-color);
   cursor: pointer;
   font-family: monospace;
@@ -773,5 +778,5 @@ button {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--button-color) var(--bg-color);
+  scrollbar-color:#FDA505 var(--bg-color);
 }
