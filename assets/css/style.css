@@ -141,7 +141,7 @@ html, body {
 }
 
 .posts-container {
-  background-color: #021624;
+  background-color: #000000;
   padding-top: 70px;
   flex-grow: 1;
   overflow-y: auto;
