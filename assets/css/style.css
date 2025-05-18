@@ -1,7 +1,7 @@
 :root {
-  --bg-color: #000000;
+  --bg-color: #143F6BFF;
   --button-color: #031b2c;
-  --font-color: #F5F7FB;
+  --font-color: #D8D7D7FE;
   --header-profile-size: 50px;
   --post-author-profile-size: 33px;
   --comment-profile-size: 25px;
@@ -46,7 +46,7 @@ html, body {
   top: 0;
   left: 0;
   width: 100vw;
-  background-color: #000000;
+  background-color: #0F3350FE;
   padding: 5px 10px;
   display: flex;
   align-items: center;
@@ -141,20 +141,20 @@ html, body {
 }
 
 .posts-container {
-  background-color: #000000;
-  padding-top: 70px;
+  background-color:#0F3350FE;
+  padding-top: 30px;
   flex-grow: 1;
   overflow-y: auto;
 }
 
 .post {
-  border: 2px solid #000000;
+  border: 2px solid #0F3350FE;
   border-radius: 8px;
-  background-color:#032945;
+  background-color: #143F6BFF;
   width: 100% !important;
   margin: 2 !important;
   padding: 15px 0 !important;
-  border-top: 20px solid   #000000!important;
+  border-top: 20px solid   #0F3350FE!important;
   border-bottom: none !important;
   box-shadow: none !important;
   display: flex !important;
@@ -183,8 +183,8 @@ html, body {
 
 .post-username {
   font-size: 1em;
-  color: #000000;
-  background-color:#FDA505;
+  color: #C5C5C5FE;
+  background-color: transparent;
   padding: 4px 8px;
   border-radius: 4px;
   display: inline-block;
@@ -264,7 +264,7 @@ html, body {
 
 .comment-username {
   font-size: 0.9em;
-  background-color: #333;
+  background-color: #444444;
   padding: 4px 8px;
   border-radius: 4px;
   color: var(--font-color);
@@ -427,7 +427,7 @@ button {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: var(--button-color);
+  background-color: var(--bg-color);
   color: var(--bg-color);
   border-radius: 50%;
   width: 60px;
@@ -435,12 +435,12 @@ button {
   font-size: 0.9em;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
   transition: background-color 0.3s;
 }
 
 .floating-post-btn:hover {
-  background-color: var(--button-color);
+  background-color: var(--bg-color);
 }
 
 .login-container {
@@ -466,7 +466,7 @@ button {
   margin-bottom: 15px;
   border: 1px solid var(--font-color);
   border-radius: 4px;
-  background-color: #000000;
+  background-color: var(--bg-color);
   color: var(--font-color);
 }
 
@@ -588,7 +588,7 @@ button {
   transform: translate(-50%, -50%);
   width: 80%;
   max-width: 500px;
-  background-color: #000000;
+  background-color: var(--bg-color);
   border: 2px solid #FDA505;
   border-radius: 8px;
   padding: 20px;
@@ -615,7 +615,7 @@ button {
   display: inline-block;
   padding: 10px 20px;
   margin: 15px auto;
-  background-color: #000000;
+  background-color: var(--bg-color);
   border: 1px solid #fff;
   border-radius: 4px;
   cursor: pointer;
@@ -632,7 +632,7 @@ button {
   margin-bottom: 15px;
   border: 1px solid #fff;
   border-radius: 4px;
-  background-color:#000000;
+  background-color:var(--bg-color);
   color: var(--font-color);
 }
 
@@ -650,7 +650,7 @@ button {
   padding: 20px;
   border: 1px solid var(--font-color);
   border-radius: 8px;
-  background-color: #000000;
+  background-color: var(--bg-color);
   max-width: 500px;
 }
 
@@ -700,7 +700,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
+  background:var(--bg-color)!important;
   border: none;
   cursor: pointer;
   font-size: 16px;
@@ -716,7 +716,7 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #000000;
+  background-color: var(--bg-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -724,7 +724,7 @@ button {
 }
 
 .post-options-popup .popup-content {
-  background:#000000;
+  background-color:var(--bg-color )!important;
   padding: 20px;
   border-radius: 8px;
   width: 90%;
@@ -737,7 +737,7 @@ button {
   margin-bottom: 10px;
   border: 1px solid var(--font-color);
   border-radius: 4px;
-  background-color: #000000;
+  background-color: var(--bg-color);
   color: var(--font-color);
   padding: 10px;
   font-family: monospace;
@@ -747,7 +747,7 @@ button {
 .post-options-popup button {
   padding: 10px 20px;
   border: 1px solid var(--font-color);
-  background-color: #000000;
+  background-color: var(--bg-color);
   color: var(--font-color);
   cursor: pointer;
   font-family: monospace;
